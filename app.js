@@ -272,12 +272,27 @@ class PianoRollDisplay {
         noteRectangle.classList.remove('highlightNote');
       }
     });
+
+    const countMessageDiv =
+      document.getElementById('selectionCounter') ||
+      document.createElement('div');
+
+    if (!countMessageDiv.id) {
+      countMessageDiv.id = 'selectionCounter';
+      mainPianoRoll.appendChild(countMessageDiv);
+    }
+
+    countMessageDiv.textContent = `Selected Notes Count: ${noteCounter}`;
   }
 
   resetSelection() {
     const oldSelectionRect = document.getElementById('selectionRectangle');
 
     if (oldSelectionRect) oldSelectionRect.remove();
+
+    const countMessageDiv = document.getElementById('selectionCounter');
+
+    if (countMessageDiv) countMessageDiv.remove();
 
     // Grab all highlighted notes
     const mainPianoRoll = document.getElementById('mainPianoRoll');
