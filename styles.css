@@ -36,6 +36,12 @@ body {
   padding: 10px;
 }
 
+#pianoRollContainer.mainView {
+  display: flex;
+  gap: 10px;
+  overflow: hidden;
+}
+
 h1 {
   margin-bottom: 20px;
   font-size: 42px;
@@ -90,9 +96,28 @@ button:hover {
   margin-top: 10px;
 }
 
+#pianoRollContainer.mainView > #mainPianoRoll {
+  position: relative;
+  width: 70%;
+}
+
+#mainPianoRoll svg {
+  height: 365.6px;
+  user-select: none;
+  touch-action: none;
+}
+
 #listPianoRoll {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
   width: 100%;
+}
+
+#pianoRollContainer.mainView > #listPianoRoll {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 30%;
+  overflow-y: auto;
 }
