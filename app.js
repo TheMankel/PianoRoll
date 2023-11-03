@@ -92,20 +92,26 @@ class PianoRollDisplay {
     // Grab and append clicked piano roll
     const clickedRoll = listPianoRoll.childNodes[rollId];
     mainPianoRoll.appendChild(clickedRoll);
+
+    this.handleSelection();
   }
 
   putBackPianoRoll() {
     const mainPianoRoll = document.getElementById('mainPianoRoll');
     const listPianoRoll = document.getElementById('listPianoRoll');
 
+    // Save current rollId
     const rollId = +mainPianoRoll.dataset.rollId;
 
     if (!isNaN(rollId)) {
+      this.resetSelection();
+
       listPianoRoll.insertBefore(
         mainPianoRoll.firstChild.cloneNode(true),
         listPianoRoll.childNodes[rollId],
       );
 
+      // Add event listener to put back card, so it can open main view
       listPianoRoll.childNodes[rollId].addEventListener('click', (e) => {
         if (e.currentTarget === mainPianoRoll.firstChild) return;
 
@@ -114,6 +120,175 @@ class PianoRollDisplay {
         this.openMainView();
       });
     }
+  }
+
+  handleSelection() {
+    const mainPianoRollSvg = document
+      .getElementById('mainPianoRoll')
+      .querySelector('.piano-roll-svg');
+
+    let isSelecting = false;
+    const startCoords = { x: 0, y: 0 };
+    const endCoords = { x: 0, y: 0 };
+
+    mainPianoRollSvg.addEventListener('mousedown', (e) => {
+      if (isSelecting) return;
+
+      isSelecting = true;
+
+      const svgCoords = mainPianoRollSvg.getBoundingClientRect();
+      startCoords.x = Math.max(e.clientX - svgCoords.left, 0);
+      startCoords.y = Math.max(e.clientY - svgCoords.top, 0);
+
+      this.resetSelection();
+
+      const selectionRectangle = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'rect',
+      );
+      selectionRectangle.id = 'selectionRectangle';
+      mainPianoRollSvg.appendChild(selectionRectangle);
+    });
+
+    mainPianoRollSvg.addEventListener('touchstart', (e) => {
+      if (isSelecting) return;
+
+      isSelecting = true;
+
+      const svgCoords = mainPianoRollSvg.getBoundingClientRect();
+      startCoords.x = Math.max(e.touches[0].clientX - svgCoords.left, 0);
+      startCoords.y = Math.max(e.touches[0].clientY - svgCoords.top, 0);
+
+      this.resetSelection();
+
+      const selectionRectangle = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'rect',
+      );
+      selectionRectangle.id = 'selectionRectangle';
+      mainPianoRollSvg.appendChild(selectionRectangle);
+    });
+
+    mainPianoRollSvg.addEventListener('mousemove', (e) => {
+      if (isSelecting) {
+        const svgCoords = mainPianoRollSvg.getBoundingClientRect();
+        endCoords.x = Math.max(e.clientX - svgCoords.left, 0);
+        endCoords.y = Math.max(e.clientY - svgCoords.top, 0);
+
+        this.drawSelectionRectangle(startCoords, endCoords);
+      }
+    });
+
+    mainPianoRollSvg.addEventListener('touchmove', (e) => {
+      if (isSelecting) {
+        const svgCoords = mainPianoRollSvg.getBoundingClientRect();
+        endCoords.x = Math.max(e.touches[0].clientX - svgCoords.left, 0);
+        endCoords.y = Math.max(e.touches[0].clientY - svgCoords.top, 0);
+
+        this.drawSelectionRectangle(startCoords, endCoords);
+      }
+    });
+
+    mainPianoRollSvg.addEventListener('mouseup', (e) => {
+      if (isSelecting) {
+        const svgCoords = mainPianoRollSvg.getBoundingClientRect();
+        endCoords.x = Math.max(e.clientX - svgCoords.left, 0);
+        endCoords.y = Math.max(e.clientY - svgCoords.top, 0);
+
+        this.drawSelectionRectangle(startCoords, endCoords);
+      }
+
+      console.log(`Start Coords: x: ${startCoords.x}, y: ${startCoords.y}`);
+      console.log(`End Coords: x: ${endCoords.x}, y: ${endCoords.y}`);
+
+      isSelecting = false;
+      startCoords.x = 0;
+      startCoords.y = 0;
+      endCoords.x = 0;
+      endCoords.y = 0;
+    });
+
+    mainPianoRollSvg.addEventListener('touchend', (e) => {
+      if (isSelecting) {
+        const svgCoords = mainPianoRollSvg.getBoundingClientRect();
+        endCoords.x = Math.max(e.changedTouches[0].clientX - svgCoords.left, 0);
+        endCoords.y = Math.max(e.changedTouches[0].clientY - svgCoords.top, 0);
+
+        this.drawSelectionRectangle(startCoords, endCoords);
+      }
+
+      console.log(`Start Coords: x: ${startCoords.x}, y: ${startCoords.y}`);
+      console.log(`End Coords: x: ${endCoords.x}, y: ${endCoords.y}`);
+
+      isSelecting = false;
+      startCoords.x = 0;
+      startCoords.y = 0;
+      endCoords.x = 0;
+      endCoords.y = 0;
+    });
+  }
+
+  drawSelectionRectangle(startCoords, endCoords) {
+    const mainPianoRollSvg = document
+      .getElementById('mainPianoRoll')
+      .querySelector('.piano-roll-svg');
+    const svgCoords = mainPianoRollSvg.getBoundingClientRect();
+
+    // Create coords and size variables
+    const x = Math.min(startCoords.x, endCoords.x) / svgCoords.width;
+    const y = Math.min(startCoords.y, endCoords.y) / svgCoords.height;
+    const width = Math.abs(startCoords.x - endCoords.x) / svgCoords.width;
+    const height = Math.abs(startCoords.y - endCoords.y) / svgCoords.height;
+
+    const selectionRectangle = document.getElementById('selectionRectangle');
+
+    selectionRectangle.setAttribute('x', x);
+    selectionRectangle.setAttribute('y', y);
+    selectionRectangle.setAttribute('width', width);
+    selectionRectangle.setAttribute('height', height);
+
+    this.countNoteRectangles();
+  }
+
+  countNoteRectangles() {
+    const mainPianoRoll = document.getElementById('mainPianoRoll');
+    const noteRectangles = mainPianoRoll.querySelectorAll('.note-rectangle');
+    const selectionRectangle = document.getElementById('selectionRectangle');
+    const selectionBounding = selectionRectangle.getBoundingClientRect();
+    let noteCounter = 0;
+
+    noteRectangles.forEach((noteRectangle) => {
+      const noteBounding = noteRectangle.getBoundingClientRect();
+
+      if (
+        noteBounding.x < selectionBounding.x + selectionBounding.width &&
+        noteBounding.x + noteBounding.width > selectionBounding.x &&
+        noteBounding.y < selectionBounding.y + selectionBounding.height &&
+        noteBounding.y + noteBounding.height > selectionBounding.y
+      ) {
+        noteCounter++;
+        noteRectangle.classList.add('highlightNote');
+      } else {
+        noteRectangle.classList.remove('highlightNote');
+      }
+    });
+  }
+
+  resetSelection() {
+    const oldSelectionRect = document.getElementById('selectionRectangle');
+
+    if (oldSelectionRect) oldSelectionRect.remove();
+
+    // Grab all highlighted notes
+    const mainPianoRoll = document.getElementById('mainPianoRoll');
+    const highlightedRectangles = mainPianoRoll.querySelectorAll(
+      '.note-rectangle.highlightNote',
+    );
+
+    // Remove highlight class from highlighted notes
+    highlightedRectangles.forEach((noteRectangle) => {
+      noteRectangle.classList.remove('highlightNote');
+    });
   }
 }
 

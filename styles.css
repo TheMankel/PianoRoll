@@ -122,6 +122,17 @@ button:hover {
   overflow-y: auto;
 }
 
+#selectionRectangle {
+  fill: rgba(255, 217, 0, 0.2);
+  stroke: rgb(255, 217, 0);
+  stroke-width: 0.2%;
+  pointer-events: none;
+}
+
+.highlightNote {
+  fill: #b20f00;
+}
+
 @media (max-width: 1024px) {
   #listPianoRoll {
     grid-template-columns: 1fr 1fr;
